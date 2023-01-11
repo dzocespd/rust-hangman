@@ -2,24 +2,23 @@ use rand::Rng;
 use std::io::{self, Write};
 
 mod tests;
+
+const POSSIBLE_WORDS_TO_GUESS: &[&str] = &[
+    "pineapple",
+    "water",
+    "milk",
+    "pencil",
+    "pen",
+    "dog",
+    "cat",
+    "sofa",
+    "javascript",
+];
+const WELCOME_MESSAGE: &'static str =
+    "Welcome to the hangman guessing game mate, good luck or get hanged!";
+
 fn main() {
-    const POSSIBLE_WORDS_TO_GUESS: &[&str] = &[
-        "pineapple",
-        "water",
-        "milk",
-        "pencil",
-        "pen",
-        "dog",
-        "cat",
-        "sofa",
-        "javascript",
-    ];
-
-    const WELCOME_MESSAGE: &'static str =
-        "Welcome to the hangman guessing game mate, good luck or get hanged!";
-
     println!("{WELCOME_MESSAGE}");
-
     start_game(POSSIBLE_WORDS_TO_GUESS)
 }
 
@@ -32,23 +31,23 @@ fn start_game(words: &[&str]) {
 
     let mut counter = 0;
 
-    let mut underscore_word: Vec<String> = Vec::new();
+    let mut underscored_word_to_guess: Vec<String> = Vec::new();
 
     loop {
         if counter == word_to_be_guessed.len() {
             break;
         }
 
-        underscore_word.push("_".to_string());
+        underscored_word_to_guess.push("_".to_string());
         counter += 1;
     }
 
     io::stdout().write(b"Start guessing:").expect("Failed");
 
-    while underscore_word.contains(&"_".to_string()) && maximum_player_lives > 0 {
+    while underscored_word_to_guess.contains(&"_".to_string()) && maximum_player_lives > 0 {
         println!("Remaining lifes: {:?} ", maximum_player_lives);
 
-        println!("{:?}", underscore_word);
+        println!("{:?}", underscored_word_to_guess);
 
         let mut user_input_letter = String::new();
 
@@ -56,22 +55,14 @@ fn start_game(words: &[&str]) {
             .read_line(&mut user_input_letter)
             .expect("Failed reading line");
 
-        let is_letter_in_word =
-            word_to_be_guessed.contains(*&user_input_letter.chars().next().unwrap());
+        let user_guess = user_input_letter.chars().next().unwrap();
 
-        if is_letter_in_word == false {
+        if word_to_be_guessed.contains(user_guess) {
+            for (index, value) in word_to_be_guessed.match_indices(user_guess) {
+                underscored_word_to_guess[index] = value.to_string();
+            }
+        } else {
             maximum_player_lives -= 1;
-            continue;
-        }
-
-        let index_of_letter_in_word =
-            word_to_be_guessed.match_indices(user_input_letter.chars().next().unwrap());
-
-        for val in index_of_letter_in_word {
-            let _value = std::mem::replace(
-                &mut underscore_word[val.0],
-                user_input_letter.chars().next().unwrap().to_string(),
-            );
         }
     }
 
